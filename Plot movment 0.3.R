@@ -17,6 +17,8 @@
 #####################################################################
 
 
+rm(list=ls(all=TRUE)) 
+
 #####################
 # Libraries 		#
 #####################
@@ -26,13 +28,18 @@ library("RColorBrewer")
 #####################
 # Change Directory	#
 #####################
-Name<-"Temporary,Boundaries,CorrelatedMove,Density=1,Speed=6.3,Iterations=1-2,StepLength=3.5,DetectorRadius=11,CallHalfwidth=3.14159,CameraHalfwidth=1.5708"
+Name<-"TestCaps,Density=70,Speed=4.6,Iterations=54-55,StepLength=300,CorrWalkMaxAngleChange=0"
+
 
 setwd("/Users/student/Documents/Bats/Simulations")
-Camera<-read.csv(paste(Name,",Cameras.csv",sep=""))
+Camera<-read.csv(paste(Name,",Sensors.csv",sep=""))
 Movement<-read.csv(paste(Name,",Movement.csv",sep=""))
-Settings<-read.csv(paste(Name,"Settings.csv",sep=""))
+Settings<-read.csv(paste(Name,",Settings.csv",sep=""))
 Captures<-read.csv(paste(Name,",Captures.csv",sep=""))
+
+
+Captures<-Captures[which(Captures$SensorID==0),]
+hist(Movement$Distance.to.HR.centre, breaks=seq(0,7000,by=10),xlim=c(0,2000))
 
 #####################
 # Colours 			#
@@ -53,40 +60,28 @@ MaxX			<-Settings[which(Settings[,1] %in% "Sq_MaxX"),2]
 MinY			<-Settings[which(Settings[,1] %in% "Sq_MinY"),2]
 MaxY			<-Settings[which(Settings[,1] %in% "Sq_MaxY"),2]
 
+LengthMonitoring<-Settings[which(Settings[,1] %in% "LengthMonitoring"),2]
+NoOfAnimals<-Settings[which(Settings[,1] %in% "NoOfAnimals"),2]
+
 
 #########################################
-# Plot one with Max captures			#
+# Plot one set of movements				#
 #########################################
 
-# Identifies the iteration with the most captures
-MaxCap<-as.numeric(names(table(Captures[,4])))[which(table(Captures[,4])==max(table(Captures[,4])))[1]]
-if(is.na(MaxCap)){MaxCap<-1}
 
-#for(i in 26){
+for(i in 54){
 	#--------------------------------
 	# the movement for the iteration with max captures
-	#Move<-Movement[which(Movement[,9]==i),]
-	#Capt<-Captures[which(Captures[,4]==i),]
+	Move<-Movement[which(Movement[,9]==i  & Movement$AnimalNumber <10 ),]
+	Capt<-Captures[which(Captures[,4]==i  & Captures$SensorID ==3 & Captures$AnimalNumber <10 ),]
 
 	#--------------------------------
 	# For saving
 	#name<-paste("MovementPlot",i,".pdf",sep="")
 	#pdf(name)
 	
-
-	
-	# ----------------------------
-	# PLots the cameras
-for(i in 1){
-	#--------------------------------
-	# the movement for the iteration with max captures
-	Move<-Movement[which(Movement[,9]==i  ),]
-	Capt<-Captures[which(Captures[,4]==i  ),]
-
-	#--------------------------------
-	# For saving
-	#name<-paste("MovementPlot",i,".pdf",sep="")
-	#pdf(name)
+	Move<-Move[which(Move$Xlocation >1000 & Move$Ylocation >1000),]
+	Move<-Move[which(Move$Xlocation <6000 & Move$Ylocation <6000),]
 	
 	#--------------------------------
 	# The limits of the plot
@@ -95,8 +90,8 @@ for(i in 1){
 		#,xlim=c(MinX,MaxX)
 		#,ylim=c(MinY,MaxY)
 		,type="n"
-		,xlim=c(00,7000)
-		,ylim=c(00,7000)
+		,xlim=c(3745,3775)
+		,ylim=c(3745,3775)
 		)
 	
 	# ----------------------------
@@ -120,20 +115,21 @@ for(i in 1){
 	for(k in 1:dim(Capt)[1]){
 		points(Capt$X.location[k],Capt$Ylocation[k],pch="*",col="blue")
 	}
-	print(i)
+	##print(i)
 	# Plots the movement
 	for(j in 2:dim(Move)[1]){
 		# The movement is selected so that the leaving and re-entering is not drawn on the plot
 		# and there isn't a line been animal n and n+1
 		if( Move$Re.enterWorld[j]== 0 &
-			Move$AnimalNumber[j] == Move$AnimalNumber[j-1]
+			Move$AnimalNumber[j] == Move$AnimalNumber[j-1] &
+			Move$StepNumber[j] -1 == Move$StepNumber[j-1]
 			){
 				print(j)
 			# Plot lines 
 			points(
 				 x=Move$Xlocation[c(j-1,j)]
 				,y=Move$Ylocation[c(j-1,j)]
-				,col=1#COL[Move$AnimalNumber[j]+1]
+				,col=Move$AnimalNumber[j]+1
 				,type="l"
 				)		
 		} #END oF IF STATEMENT
@@ -165,35 +161,7 @@ for(i in 1){
 	#	temp<-sqrt((Capt$X.location[k]-cam$X.location)^2+(Capt$Ylocation[k]-cam$Y.location)^2)
 	#	print(paste("The distance from bat to camera when captured",temp))
 	}
-	
-	# Plots the movement
-	for(j in 2:dim(Move)[1]){
-		# The movement is selected so that the leaving and re-entering is not drawn on the plot
-		# and there isn't a line been animal n and n+1
-		if( Move$Re.enterWorld[j]== 0 &
-			Move$AnimalNumber[j] == Move$AnimalNumber[j-1]
-			){
-				print(Move[j,1])
-				
-				points( x=c(Move$Xlocation[j],Move$Xlocation[j]+CallRadius*sin(Move$Angle[j]+(Callhalfwidth/2)))
-				,y=c(Move$Ylocation[j],Move$Ylocation[j]+CallRadius*cos(Move$Angle[j]+(Callhalfwidth/2)))
-				,col="blue"
-				,type="l")
-				
-				points( x=c(Move$Xlocation[j],Move$Xlocation[j]+CallRadius*sin(Move$Angle[j]-(Callhalfwidth/2)))
-				,y=c(Move$Ylocation[j],Move$Ylocation[j]+CallRadius*cos(Move$Angle[j]-(Callhalfwidth/2)))
-				,col="blue"
-				,type="l")
-				
-			# Plot lines 
-			points(
-				 x=Move$Xlocation[c(j-1,j)]
-				,y=Move$Ylocation[c(j-1,j)]
-				,type="l"
-				)		
-		} #END oF IF STATEMENT
-	} #END OF J FOR LOOP STATEMENT
-	
+		
 	#dev.off() # END OF SAVE PLOT
-} # END OF PLOT LOOP
+#} # END OF PLOT LOOP
 
