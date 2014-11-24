@@ -217,7 +217,7 @@ calculate.plot<-function(profilewidth, Data, Speed, Time, NoOfIterations, Densit
 
 ### - Points with CI for each model and percentage error
 setwd(DIR_IMG)
-pdf("AverageModelBias - speederror.pdf")
+pdf("AverageModelBias - SpeedError.pdf")
 
 # Sets the outline of the plot
 plot(type="n",0,0,xlab="Model Number",ylab="",xlim=c(1,25),ylim=c(-15,15),axes=FALSE,main="Speed Error")
