@@ -32,7 +32,7 @@ DIR_DATA<-"/Users/student/Documents/Bats/Simulations"
 DIR_SAVE<-"/Users/student/Documents/Bats/Simulations"
 #DIR_IMG<-"/Users/student/Documents/Bats/lucasMoorcroftManuscript/imgs"
 DIR_IMG<-"/Users/student/Documents/Bats/Temp"
-DIR_CODE<-"/Users/student/Documents/Bats/R analysis code"
+DIR_CODE<-"/Users/student/Documents/Bats/RAnalysis/R analysis code"
 
 
 #####################
@@ -54,20 +54,27 @@ COLsets=rep(c(COLset1,COLset2,COLset3),4)
 ##reds for SD
 COLred = brewer.pal(9,"Reds")
 
+
+
 ##Colours match Tims graph
 COLMATCHGRAPH<- c( COLset3[1], COLset3[12], COLset3[6], COLset3[4], COLset3[5], COLset3[3], COLset3[8], COLset3[11])
 
 ramp<-colorRamp(COLred)
 
-## Percentage ERRORS
-percentage.error<-c(-10,1,0,1,10)
+#################################
+# Percentage ERRORS             #
+#################################
+percentage.error<-c(-10,-1,0,1,10)
+#Spectral
+COLspec = brewer.pal(5,"Spectral")
 
 #################################
 # Load in Settings				#
 #################################
 setwd(DIR_DATA)
-Settings<-read.csv("Run23Oct201317July0,Density=70,Speed=0.46,Iterations=1-101,StepLength=900,CorrWalkMaxAngleChange=0,Settings.csv")
-Cameras<-read.csv("Run23Oct201317July0,Density=70,Speed=0.46,Iterations=1-101,StepLength=900,CorrWalkMaxAngleChange=0,Sensors.csv")
+name<-"Run23Oct201317July0,Density=70,Speed=0.46,Iterations=1-101,StepLength=900,CorrWalkMaxAngleChange=0"
+Settings<-read.csv(paste(name,",Settings.csv",sep=""))
+Cameras<-read.csv(paste(name,",Sensors.csv",sep=""))
 
 #################################
 # Setting variables				#
@@ -88,7 +95,7 @@ Density			<-NoofAnimals/(Area)
 #################################
 # Load Data						#
 #################################
-loadindata<-read.csv("Run23Oct201317July0,Density=70,Speed=0.46,Iterations=1-101,StepLength=900,CorrWalkMaxAngleChange=0,timenosubs14400.csv",header=FALSE)
+loadindata<-read.csv(paste(name,",Test.csv",sep=""),header=FALSE)
 
 x<-loadindata[,-dim(loadindata)[2]]
 
@@ -114,13 +121,13 @@ for(i in 12:dim(Data)[2]){
 #for(i in 1:84){
 
 	
-	print(paste("I:",i))
+	#print(paste("I:",i))
 	CamerarowI	<-which(header[1,i]==Cameras[,1])	
 	CameraWidthI<-Cameras[CamerarowI,5]*2	
 	CameraRadiI	<-Cameras[CamerarowI,6]
 	CallAngleI	<-header[2,i]*2
 	
-	print(paste("Callangle",CallAngleI,"Camerawidth",CameraWidthI))
+	#print(paste("Callangle",CallAngleI,"Camerawidth",CameraWidthI))
 
 	
 	profilewidth<-calcProfileWidth(CallAngleI, CameraWidthI, CameraRadiI )
@@ -203,22 +210,20 @@ calculate.plot<-function(profilewidth, Data, Speed, Time, NoOfIterations, Densit
             
     #Plots
     print(paste("x-value: ", modelcount, ", y-value: ",meanadj))
-    plotCI(x=modelcount,y=meanadj,uiw=(1.96*stardarderr),add=T,col=error.counter)
+    plotCI(x=modelcount,y=meanadj,uiw=(1.96*stardarderr),add=T,col=COLspec[error.counter])
 }
         
 
 
-### - Boxplots for each model
-#setwd(DIR_IMG)
-#pdf("AverageModelBias.pdf")
+### - Points with CI for each model and percentage error
+setwd(DIR_IMG)
+pdf("AverageModelBias - callerror.pdf")
 
-# Sets the outline of teh plot
-plot(type="n",0,0,xlab="Model Number",ylab="",xlim=c(1,25),ylim=c(-15,15),axes=FALSE)
+# Sets the outline of the plot
+plot(type="n",0,0,xlab="Model Number",ylab="",xlim=c(1,25),ylim=c(-15,15),axes=FALSE,main="Call Error")
 abline(h=0,col="grey",lty=2)
-model.counter=1
 
 list.of.models<-c(1:25)
-
 
 # model each column of the data (each inidvidual camera/call/radius combo)
 for(Column in 1:dim(Data)[2]){
@@ -228,25 +233,17 @@ for(Column in 1:dim(Data)[2]){
     CameraWidthI<-Cameras[CamerarowI,5]*2
     CameraRadiI	<-Cameras[CamerarowI,6]
     CallAngleI	<-header[2,Column]*2
-    print(paste("CamerarowI ",	CamerarowI,	", CameraWidthI ",CameraWidthI, ", CameraRadiI ", CameraRadiI,", CallAngleI ", CallAngleI,sep=""))
-        
+    
     # select point from matrix
     example.points.camera   <-which(as.numeric(ChoosenPts[,1])==CameraWidthI/2)
     example.points.call     <-which(as.numeric(ChoosenPts[,2])==CallAngleI/2)
     example.points.both     <-example.points.camera[which(example.points.camera %in% example.points.call)]
     example.point.location  <-which(list.of.models %in% example.points.both)
-        
-    #print("example.points.camera:");print(example.points.camera)
-    #print("example.points.call: ");print(example.points.call)
-    #print("example.points: ");print(example.points.both)
-    #print("example.point.location"); print(example.point.location)
+    
         
     if(length(example.point.location)==1 & CameraRadiI==10){
-        print("in if length>1 loop")
         if(length(list.of.models)==0){break();}
         list.of.models = list.of.models[-example.point.location]
-        print("list.of.models");print(list.of.models)
-            
             
         # For each error value calculates then plots mean/sd
         error.counter<-1
@@ -254,19 +251,10 @@ for(Column in 1:dim(Data)[2]){
             # Calculate profile width
             c.angle<-CallAngleI+CallAngleI*(percentage.error[error]/100)
             if(c.angle>(2*pi)){c.angle=2*pi} else if(c.angle<0){c.angle=0}
-            print(paste("CamerarowI ",	CamerarowI,	", CameraWidthI ",CameraWidthI, ", CameraRadiI ", CameraRadiI,", c.angle ", c.angle,sep=""))
             profilewidth<-calcProfileWidth(c.angle, CameraWidthI, CameraRadiI )[[1]]
-            print(paste("profilewidth",profilewidth))
-            #print("Speed");print(Speed)
-            #print("Time");print(Time)
-            print("Data[,i]");print(Data[,Column])
-            calculate.plot(profilewidth, Data=Data[,Column], Speed, Time, NoOfIterations, Density, modelcount=model.counter, error.counter)
+            calculate.plot(profilewidth, Data=Data[,Column], Speed, Time, NoOfIterations, Density, modelcount=example.points.both, error.counter)
             error.counter=error.counter+1
         }# error loop
-            
-        #Updates x location
-        print(paste(" Model counter: ", model.counter,"/",dim(ChoosenPts)[1],sep=""))
-        model.counter=model.counter+1
             
     } # else{print("not in table")} # end of if loop
         
@@ -277,5 +265,6 @@ for(Column in 1:dim(Data)[2]){
 axis(side=1,at=c(1:dim(ChoosenPts)[1]),labels=ChoosenPts[,3],las=2)
 axis(side=2,at=c(-15,-10,-5,0,5,10,15),labels=c(-15,-10,-5,0,5,10,15),las=0)
 mtext(text=expression(paste("Percentage error",sep="")),side=2,line=2)
+legend(x=20,y=-5,col=COLspec,legend=(percentage.error),lty=1,cex=0.8)
 box()
-#dev.off()
+dev.off()
