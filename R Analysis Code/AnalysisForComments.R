@@ -217,10 +217,10 @@ calculate.plot<-function(profilewidth, Data, Speed, Time, NoOfIterations, Densit
 
 ### - Points with CI for each model and percentage error
 setwd(DIR_IMG)
-pdf("AverageModelBias - SpeedError.pdf")
+pdf("AverageModelBias - radiuserror.pdf")
 
 # Sets the outline of the plot
-plot(type="n",0,0,xlab="Model Number",ylab="",xlim=c(1,25),ylim=c(-15,15),axes=FALSE,main="Speed Error")
+plot(type="n",0,0,xlab="Model Number",ylab="",xlim=c(1,25),ylim=c(-15,15),axes=FALSE,main="Radius Error")
 abline(h=0,col="grey",lty=2)
 
 list.of.models<-c(1:25)
@@ -249,10 +249,10 @@ for(Column in 1:dim(Data)[2]){
         error.counter<-1
         for(error in 1:length(percentage.error)){
             # Calculate profile width
-            #c.angle<-CameraRadiI +CameraRadiI *(percentage.error[error]/100)
-            #if(c.angle>(2*pi)){c.angle=2*pi} else if(c.angle<0){c.angle=0}
-            profilewidth<-calcProfileWidth(CallAngleI,CameraWidthI, CameraRadiI )[[1]]
-            calculate.plot(profilewidth, Data=Data[,Column], Speed+Speed*(percentage.error[error]/100), Time, NoOfIterations, Density, modelcount=example.points.both, error.counter)
+            c.angle<-CallAngleI +CallAngleI *rnorm(100,0,percentage.error[error]/100)
+            if(c.angle>(2*pi)){c.angle=2*pi} else if(c.angle<0){c.angle=0}
+            profilewidth<-calcProfileWidth(c.angle ,CameraWidthI, CameraRadiI)[[1]]
+            calculate.plot(profilewidth, Data=Data[,Column], Speed, Time, NoOfIterations, Density, modelcount=example.points.both, error.counter)
             error.counter=error.counter+1
         }# error loop
             
