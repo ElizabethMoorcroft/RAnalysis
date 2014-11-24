@@ -21,10 +21,10 @@ library("png")
 
 # Directories
 Data<-"/Users/student/Documents/Bats/Simulations"
-Save<-"/Users/student/Dropbox/Movie"
+Save<-"/Users/student/Documents/Bats/ASA presentation/MovieASA"
 
 # Name of simulation
-Name<-"Run23Oct2013RTESTcompare,Perch0,Density=0.5,Speed=0.46,Iterations=1-2,StepLength=300,CorrWalkMaxAngleChange=0.436332"
+Name<-"ASAMoviecompareanimalcall0,Density=10,Speed=0.46,Iterations=1-2,StepLength=10,CorrWalkMaxAngleChange=0"
 
 # Load in Movement and Setting files (if it's too long then in may not load)
 setwd(Data)
@@ -33,16 +33,13 @@ Movement<-read.csv(paste(Name,",Movement.csv",sep=""))
 Sensor<-read.csv(paste(Name,",Sensors.csv",sep=""))
 Settings<-read.csv(paste(Name,",Settings.csv",sep=""))
 
-# Load images of animal and detector
-setwd(Pictures)
-img.animal <- readPNG("bat.png")
-img.sensor <- readPNG("Mic.png")
-img.size<- 15
 
 ##
 blue.col=brewer.pal(9,"Blues")[3]
 red.col=brewer.pal(9,"Reds")[3]
+img.size=0
 
+call.angle=(5*pi/180)
 
 # Values for plot
 MinX<-Settings[which(Settings[,1] %in% "Sq_MinX"),2]
@@ -89,12 +86,18 @@ for(step in 1:Time){
 		#Capt<-Captures[which(Captures$Time_step == step),]
 		
 		# Creates a save name which is "myplot000XX" so that they are automatically in the correct order in folder
-		nodigitsframe<-length(strsplit(as.character(step),"")[[1]])
-		nozeros<-nodigits - nodigitsframe
-		if(nozeros>0){for(i in 1:nozeros){number<-paste(paste(rep(0,nozeros), collapse = ''),step,sep="")}} else{number<-step}
-		name<-paste('myplot',number,'.png',sep="")
+		#nodigitsframe<-length(strsplit(as.character(step),"")[[1]])
+		#nozeros<-nodigits - nodigitsframe
+		#if(nozeros>0){for(i in 1:nozeros){number<-paste(paste(rep(0,nozeros), collapse = ''),step,sep="")}} else{number<-step}
+		number<-step
+		name<-paste('compare2_',number,'.png',sep="")
 
-        if( !step %in% Captures$Time_step ){seg.col=blue.col} else {seg.col=red.col}
+        if( !step %in% Captures$Time_step ){seg.col=blue.col} else {
+        	rows<-which(Captures$Time_step==step)
+        	temp.vector.call.angles<-abs(Captures$angle.from.Animal.to.Camera[rows])
+        	print(temp.vector.call.angles)
+        	if(any(temp.vector.call.angles<call.angle)){seg.col=red.col}else{seg.col=blue.col}
+        	}
 		
 		# Opens plot
 		png(name)
