@@ -86,7 +86,6 @@ ModelSelection[4,]<-c(1.74533,1.428  , r, t,"SE3") # p322
 # Plot - perching               #
 #################################
 
-
 ##Create data set
 time.perch<-c(0,0.25,0.5,0.75)
 names.base<-lapply(time.perch,function(x){paste("Run23Oct201317July", x, ",Density=70,Speed=0.46,Iterations=1-101,StepLength=900,CorrWalkMaxAngleChange=0,", sep="")})
@@ -105,6 +104,32 @@ pdf("ResultsPerch.pdf")
     plot.biases.boxplot(all.data=biases,colour.list=COLmodel,model.name=ModelSelection[,5])
     mtext(side=1,at=c(0,1,2,3),text=expression(0,0.25,0.5,0.75),line=1)
     mtext(side=1,text="Proportion of time spent stationary",line=1.5,outer=TRUE)
+    mtext(side=2,text="Percentage error between estimated and true density",line=1.5,outer=TRUE)
+dev.off()
+
+
+#################################
+# Plot - Tort                   #
+#################################
+
+##Create data set
+tort<-c(0,1.0472,2.0944,3.14159)
+names.base<-lapply(tort,function(x){paste("Run23Oct201317July0,Density=70,Speed=0.46,Iterations=1-101,StepLength=900,CorrWalkMaxAngleChange=", x,",",sep="")})
+
+setwd(DIR_DATA)
+biases<-calculate.all.biases(Names=paste(names.base,"timenosubs14400.csv",sep=""),
+                            Names.Cameras=paste(names.base,"Sensors.csv",sep=""),
+                            ModelSelection,
+                            Speed=0.46,
+                            Density=6.999111e-05,
+                            StepLength=900)
+
+setwd(DIR_IMG)
+pdf("ResultsTort.pdf")
+    par(mfrow=c(4,1),oma=c(3,3,0,0), mar=c(2,4,2,0.5))
+    plot.biases.boxplot(all.data=biases,colour.list=COLmodel,model.name=ModelSelection[,5])
+    mtext(side=1,at=c(0,1,2,3),text=expression(0,pi/3,2*pi/3,pi),line=1)
+    mtext(side=1,text="Maximum change in direction at each step (radians)",line=1.5,outer=TRUE)
     mtext(side=2,text="Percentage error between estimated and true density",line=1.5,outer=TRUE)
 dev.off()
 

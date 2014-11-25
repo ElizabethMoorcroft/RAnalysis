@@ -14,7 +14,7 @@
 #                  - Marcus' Function                    				#
 #                                                                   	#
 #########################################################################
-rm(list=ls(all=TRUE)) 
+
 
 #####################
 # Libraries 		#
@@ -22,13 +22,6 @@ rm(list=ls(all=TRUE))
 library("RColorBrewer")
 library("plotrix")
 
-
-#####################
-# Directory			#
-#####################
-DIR_DATA<-"/Users/student/Documents/Bats/Simulations"
-DIR_SAVE<-"/Users/student/Documents/Bats/Simulations"
-DIR_CODE<-"/Users/student/Documents/Bats/R analysis code"
 
 
 #####################
