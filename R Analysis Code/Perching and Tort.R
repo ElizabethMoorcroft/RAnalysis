@@ -80,6 +80,16 @@ ModelSelection[4,]<-c(1.74533,1.428  , r, t,"SE3") # p322
 # Functions						#
 #################################
 
+model.name<-function(row.model.select){
+    if(row.model.select[1]==1.0472 & row.model.select[2]==3.14159){name<-"NW1"}
+    else if(row.model.select[1]==1.0472 & row.model.select[2]==1.428){name<-"SW1"}
+    else if(row.model.select[1]==1.74533 & row.model.select[2]==3.14159){name<-"NE1"}
+    else if(row.model.select[1]==1.74533 & row.model.select[2]==1.428){name<-"SE3"}
+    else{name<-"NA"}
+    return(name)
+}
+
+all.models<-c("NW1","SW1","NE1","SE3")
 
 
 #################################
@@ -87,8 +97,9 @@ ModelSelection[4,]<-c(1.74533,1.428  , r, t,"SE3") # p322
 #################################
 
 ##Create data set
-time.perch<-c(0,0.25,0.5,0.75)
+time.perch<-c(0,0.5,0.75)
 names.base<-lapply(time.perch,function(x){paste("Run23Oct201317July", x, ",Density=70,Speed=0.46,Iterations=1-101,StepLength=900,CorrWalkMaxAngleChange=0,", sep="")})
+x.pos<-matrix(ncol=4,rep(1:4,each=4))
 
 setwd(DIR_DATA)
 biases<-calculate.all.biases(Names=paste(names.base,"timenosubs14400.csv",sep=""),
@@ -96,13 +107,14 @@ biases<-calculate.all.biases(Names=paste(names.base,"timenosubs14400.csv",sep=""
                             ModelSelection,
                             Speed=0.46,
                             Density=6.999111e-05,
-                            StepLength=900)
+                            StepLength=900,
+                            x.pos)
 
 setwd(DIR_IMG)
 pdf("ResultsPerch.pdf")
     par(mfrow=c(4,1),oma=c(3,3,0,0), mar=c(2,4,2,0.5))
-    plot.biases.boxplot(all.data=biases,colour.list=COLmodel,model.name=ModelSelection[,5])
-    mtext(side=1,at=c(0,1,2,3),text=expression(0,0.25,0.5,0.75),line=1)
+    plot.biases.boxplot(all.data=biases,colour.list=COLmodel,model.name=ModelSelection[,5],ylim=6,ylab=c(-4,0,4),type="boxplot")
+    mtext(side=1,at=c(1,2,3,4),text=expression(0,0.25,0.5,0.75),line=1)
     mtext(side=1,text="Proportion of time spent stationary",line=1.5,outer=TRUE)
     mtext(side=2,text="Percentage error between estimated and true density",line=1.5,outer=TRUE)
 dev.off()
@@ -115,6 +127,7 @@ dev.off()
 ##Create data set
 tort<-c(0,1.0472,2.0944,3.14159)
 names.base<-lapply(tort,function(x){paste("Run23Oct201317July0,Density=70,Speed=0.46,Iterations=1-101,StepLength=900,CorrWalkMaxAngleChange=", x,",",sep="")})
+x.pos<-matrix(ncol=4,rep(1:4,each=4))
 
 setwd(DIR_DATA)
 biases<-calculate.all.biases(Names=paste(names.base,"timenosubs14400.csv",sep=""),
@@ -122,13 +135,14 @@ biases<-calculate.all.biases(Names=paste(names.base,"timenosubs14400.csv",sep=""
                             ModelSelection,
                             Speed=0.46,
                             Density=6.999111e-05,
-                            StepLength=900)
+                            StepLength=900,
+                            x.pos)
 
 setwd(DIR_IMG)
 pdf("ResultsTort.pdf")
     par(mfrow=c(4,1),oma=c(3,3,0,0), mar=c(2,4,2,0.5))
-    plot.biases.boxplot(all.data=biases,colour.list=COLmodel,model.name=ModelSelection[,5])
-    mtext(side=1,at=c(0,1,2,3),text=expression(0,pi/3,2*pi/3,pi),line=1)
+    plot.biases.boxplot(all.data=biases,colour.list=COLmodel,model.name=ModelSelection[,5],ylim=6,ylab=c(-4,0,4),type="boxplot")
+    mtext(side=1,at=c(1,2,3,4),text=expression(0,pi/3,2*pi/3,pi),line=1)
     mtext(side=1,text="Maximum change in direction at each step (radians)",line=1.5,outer=TRUE)
     mtext(side=2,text="Percentage error between estimated and true density",line=1.5,outer=TRUE)
 dev.off()
@@ -137,5 +151,37 @@ dev.off()
 
 
 
+#################################
+# Model selection				#
+#################################
 
+r<-10 # radius
+t<-c(14,  27, 40 , 53 , 66,  79 , 92, 105 ,118 ,131 ,144)
+#t<-c(140 ,270,400,530,660,790,920,1050,1180,1310,1440)#c(1310,2619,3928,5237,6546,7855,9164,10473,11782,13091,14400) # time
+camera<-c(1.0472,1.74533)
+call<-c(3.14159,1.428)
+grid.of.values<-as.matrix(expand.grid(camera, call,r,t))
+vector.model.names<-apply(grid.of.values,1,model.name)
+ModelSelection<-cbind(grid.of.values,vector.model.names)
+x.pos<-matrix(ncol=2,rep(rep(1:11,each=4),2))
+
+walks<-c(0,3.14159)
+names.base<-lapply(walks,function(x){paste("Run23Oct201317July0,Density=70,Speed=0.46,Iterations=1-101,StepLength=900,CorrWalkMaxAngleChange=", x,",",sep="")})
+setwd(DIR_DATA)
+biases<-calculate.all.biases(Names=paste(names.base,"AnalysisForCommentsSHORTTimeSub.csv",sep=""),
+                            Names.Cameras=paste(names.base,"Sensors.csv",sep=""),
+                            ModelSelection,
+                            Speed=0.46,
+                            Density=6.999111e-05,
+                            StepLength=900,
+                            x.pos)
+
+setwd(DIR_IMG)
+pdf("TimeSubs.pdf")
+    par(mfrow=c(4,1),oma=c(3,3,0,0), mar=c(2,4,2,0.5))
+    plot.biases.boxplot(all.data=biases,colour.list=COLmodel,model.name=all.models,ylim=100,ylab=c(-50,0,50),type="notplot")
+    mtext(side=1,at=c(1:11),text=round((t*900)/(60*60*24),1),line=1)
+    mtext(side=1,text="Number of days",line=1.5,outer=TRUE)
+    mtext(side=2,text="Percentage error between estimated and true density",line=1.5,outer=TRUE)
+dev.off()
 
