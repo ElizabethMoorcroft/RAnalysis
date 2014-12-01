@@ -66,13 +66,14 @@ COLmodel[4,]<-c("SE3", COLset3[11])
 
 r<-10 # radius
 t<-14400 # time
+n<-3937
 
 # Camera angle; Call angle; Radius; Time; Name
-ModelSelection<-matrix(nrow=4,ncol=5)
-ModelSelection[1,]<-c(1.0472,3.14159 , r, t,"NW1") # p141
-ModelSelection[2,]<-c(1.0472,1.428   , r, t,"SW1") # p343
-ModelSelection[3,]<-c(1.74533,3.14159, r, t,"NE1") # p221
-ModelSelection[4,]<-c(1.74533,1.428  , r, t,"SE3") # p322
+ModelSelection<-matrix(nrow=4,ncol=6)
+ModelSelection[1,]<-c(1.0472,3.14159 , r, t, n, "NW1") # p141
+ModelSelection[2,]<-c(1.0472,1.428   , r, t, n, "SW1") # p343
+ModelSelection[3,]<-c(1.74533,3.14159, r, t, n, "NE1") # p221
+ModelSelection[4,]<-c(1.74533,1.428  , r, t, n, "SE3") # p322
 
 
 
@@ -106,7 +107,7 @@ biases<-calculate.all.biases(Names=paste(names.base,"timenosubs14400.csv",sep=""
                             Names.Cameras=paste(names.base,"Sensors.csv",sep=""),
                             ModelSelection,
                             Speed=0.46,
-                            Density=6.999111e-05,
+                            Area=(7500^2),
                             StepLength=900,
                             x.pos)
 
@@ -134,7 +135,7 @@ biases<-calculate.all.biases(Names=paste(names.base,"timenosubs14400.csv",sep=""
                             Names.Cameras=paste(names.base,"Sensors.csv",sep=""),
                             ModelSelection,
                             Speed=0.46,
-                            Density=6.999111e-05,
+                            Area=(7500^2),
                             StepLength=900,
                             x.pos)
 
@@ -156,32 +157,37 @@ dev.off()
 #################################
 
 r<-10 # radius
-t<-c(14,  27, 40 , 53 , 66,  79 , 92, 105 ,118 ,131 ,144)
+t<-c(12,18,24,30,36,42,48,54,60,66,72)#t<-c(14,  27, 40 , 53 , 66,  79 , 92, 105 ,118 ,131 ,144)
+n<-c(38)
 #t<-c(140 ,270,400,530,660,790,920,1050,1180,1310,1440)#c(1310,2619,3928,5237,6546,7855,9164,10473,11782,13091,14400) # time
 camera<-c(1.0472,1.74533)
 call<-c(3.14159,1.428)
-grid.of.values<-as.matrix(expand.grid(camera, call,r,t))
+grid.of.values<-as.matrix(expand.grid(camera, call,r,t,n))
 vector.model.names<-apply(grid.of.values,1,model.name)
 ModelSelection<-cbind(grid.of.values,vector.model.names)
 x.pos<-matrix(ncol=2,rep(rep(1:11,each=4),2))
 
 walks<-c(0,3.14159)
-names.base<-lapply(walks,function(x){paste("Run23Oct201317July0,Density=70,Speed=0.46,Iterations=1-101,StepLength=900,CorrWalkMaxAngleChange=", x,",",sep="")})
+names.base<-lapply(walks,function(x){paste("REFSCommentscompareanimalcall0,Density=70,Speed=0.46,Iterations=1-101,StepLength=900,CorrWalkMaxAngleChange=", x,",",sep="")})
 setwd(DIR_DATA)
-biases<-calculate.all.biases(Names=paste(names.base,"AnalysisForCommentsSHORTTimeSub.csv",sep=""),
+biases<-calculate.all.biases(Names=paste(names.base,"AnalysisForCommentsVSHORTTimeSubDen.csv",sep=""),
                             Names.Cameras=paste(names.base,"Sensors.csv",sep=""),
                             ModelSelection,
                             Speed=0.46,
-                            Density=6.999111e-05,
+                            Area=(7500^2),
                             StepLength=900,
                             x.pos)
 
 setwd(DIR_IMG)
 pdf("TimeSubs.pdf")
     par(mfrow=c(4,1),oma=c(3,3,0,0), mar=c(2,4,2,0.5))
-    plot.biases.boxplot(all.data=biases,colour.list=COLmodel,model.name=all.models,ylim=100,ylab=c(-50,0,50),type="notplot")
+    plot.biases.boxplot(all.data=biases,colour.list=COLmodel,model.name=all.models,ylim=10,ylab=c(-10,0,10),type="notplot")
     mtext(side=1,at=c(1:11),text=round((t*900)/(60*60*24),1),line=1)
     mtext(side=1,text="Number of days",line=1.5,outer=TRUE)
     mtext(side=2,text="Percentage error between estimated and true density",line=1.5,outer=TRUE)
 dev.off()
 
+setwd(DIR_DATA)
+x<-read.csv("REFSCommentscompareanimalcall0,Density=70,Speed=0.46,Iterations=1-101,StepLength=900,CorrWalkMaxAngleChange=0,AnalysisForCommentsVSHORTTimeSubDen.csv",header=FALSE)
+sort(as.numeric(names(table(as.character(x[3,-1])))))
+sort(as.numeric(names(table(as.character(x[4,-1])))))

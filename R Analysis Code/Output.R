@@ -17,9 +17,17 @@ select.columns<-function(model.values, header,Cameras){ #model.values<-ModelSele
     # Works out the correct column
     selectedcols<-which(header[sensorrow,]== CamerarowI &
                         header[callrow,]  == model.values[2] &
-                        header[timerow,]  == model.values[4])
+                        header[timerow,]  == model.values[4] &
+                        header[densityrow,]  == model.values[5])
     
-    print("selectedcols");print(selectedcols[1])
+    
+    #print("model.values");print(model.values)
+    #print("CamerarowI");print(CamerarowI); print(which(header[sensorrow,]== CamerarowI))
+    #print("selectedcols");print(selectedcols)
+    #print(paste("timerow",timerow)); print(which(header[timerow,]  == model.values[4]))
+    #print(paste("sensorrow",sensorrow))
+    #print(paste("callrow",callrow));print(which(header[callrow,]  == model.values[2]))
+    #print(paste("densityrow",densityrow));print(which(header[densityrow,]  == model.values[5]))
     
     #returnsvalues
     return(selectedcols[1])
@@ -44,7 +52,7 @@ calculate.bias<-function(profilewidth, Data, Speed, Time, Density){
 
 }
 
-CalBias<-function(ModelSelection, Cameras, x, Speed, Density, StepLength, x.position, file.input ){
+CalBias<-function(ModelSelection, Cameras, x, Speed, Area, StepLength, x.position, file.input ){
 	    
     #List to be outputted
 	Output<-vector(mode="list",length=4)
@@ -56,7 +64,7 @@ CalBias<-function(ModelSelection, Cameras, x, Speed, Density, StepLength, x.posi
     # Loops through all of the modelSelections
 	for(i in 1:dim(ModelSelection)[1]){
         
-        #print(paste("CalBias loop #:",i))
+        print(paste("CalBias loop #:",i))
         #Selects the coloumn from the Chosen points
         model.values<-ModelSelection[i,]
 		
@@ -69,27 +77,27 @@ CalBias<-function(ModelSelection, Cameras, x, Speed, Density, StepLength, x.posi
 		selectedcols<-select.columns(model.values, header,Cameras)
         
         #Calculate bias
-        bias<-calculate.bias(profilewidth=profilewidth[[1]], Data=Data[selectedcols], Speed=Speed, Time=as.numeric(model.values[4])*StepLength, Density=Density)
+        bias<-calculate.bias(profilewidth=profilewidth[[1]], Data=Data[selectedcols], Speed=Speed, Time=as.numeric(model.values[4])*StepLength, Density=as.numeric(model.values[5])/Area)
         
         # Adds bias to returned list
-        Output[[i]]<-list(bias,as.character(model.values[5]),x.position[i],file.input)# saves: bias values; model name; position on the x axis
+        Output[[i]]<-list(bias,as.character(model.values[6]),x.position[i],file.input)# saves: bias values; model name; position on the x axis
     }
     
     return(Output)
 }
 
-calculate.all.biases<-function(Names,Names.Cameras,ModelSelection,Speed, Density, StepLength, x.position){
+calculate.all.biases<-function(Names,Names.Cameras,ModelSelection,Speed, Area, StepLength, x.position){
     
     #List to be outputted
     Output<-vector(mode="list",length=length(Names))
     
     for(current.name in 1:length(Names)){
-        #print(paste("calculated.all.biases loop #:",current.name))
+        print(paste("calculated.all.biases loop #:",current.name))
         #Load in data for the current data set
         current.data<-read.csv(Names[[current.name]],header = FALSE)
         current.cameras<-read.csv(Names.Cameras[[current.name]])
         
-        Output[[current.name]]<-CalBias(ModelSelection=ModelSelection, Cameras=current.cameras, x=current.data, Speed, Density, StepLength, x.position[,current.name],current.name )
+        Output[[current.name]]<-CalBias(ModelSelection=ModelSelection, Cameras=current.cameras, x=current.data, Speed, Area, StepLength, x.position[,current.name],current.name )
         
     }
     
@@ -118,10 +126,10 @@ plot.type<-function(data,type,colour){
         meanadj<-mean(d);
         stardarderr<-sd(d)/sqrt(length(d))
         #print(paste("meanadj",meanadj,"stardarderr",stardarderr))
-        #if(data[[4]]==1){plotCI(x=data[[3]],y=meanadj,uiw=(1.96*stardarderr),add=T,col=colour)}
-        #else{plotCI(x=data[[3]]+0.2,y=meanadj,uiw=(1.96*stardarderr),add=T,col="black")}
-        if(data[[4]]==1){boxplot(x=data[[1]],at=data[[3]]-0.1,add=T,col=colour,axes=FALSE,boxwex=0.3)}
-        else{boxplot(x=data[[1]],at=data[[3]]+0.1,add=T,col="grey",axes=FALSE,boxwex=0.3)}
+        if(data[[4]]==1){plotCI(x=data[[3]],y=meanadj,uiw=(1.96*stardarderr),add=T,col=colour)}
+        else{plotCI(x=data[[3]]+0.2,y=meanadj,uiw=(1.96*stardarderr),add=T,col="black")}
+        #if(data[[4]]==1){boxplot(x=data[[1]],at=data[[3]]-0.1,add=T,col=colour,axes=FALSE,boxwex=0.3);print("first")}
+        #else{boxplot(x=data[[1]],at=data[[3]]+0.1,add=T,col="grey",axes=FALSE,boxwex=0.3);print("other")}
     }
 }
 
