@@ -163,37 +163,16 @@ for(i in 12:dim(Data)[2]){
 
 
 ###  - Models Selected for the analysis
-ChoosenPts<-matrix(ncol=4,nrow=25)
-ChoosenPts[1,]<-c(camerawidth[1],callwidth[1],"SW7", 8) #"p344"
-ChoosenPts[2,]<-c(camerawidth[1],callwidth[2],"SW8", 8)#"p345"
-ChoosenPts[3,]<-c(camerawidth[2],callwidth[1],"SW4", 8)#"p341"
-ChoosenPts[4,]<-c(camerawidth[2],callwidth[3],"SW5", 8)#"p342"
-ChoosenPts[5,]<-c(camerawidth[1],callwidth[3],"SW9", 8)#"p346"
-ChoosenPts[6,]<-c(camerawidth[1],callwidth[5],"SW6", 8)#"p343"
-ChoosenPts[7,]<-c(camerawidth[1],callwidth[6], "NW7" ,6)#"p243"
-ChoosenPts[8,]<-c(camerawidth[1],callwidth[9],"NW6" ,6)#"p242"
-ChoosenPts[9,]<-c(camerawidth[1],callwidth[10], "NW5" ,6)#"p241"
-ChoosenPts[10,]<-c(camerawidth[1],callwidth[11],"REM",5) #"p141"
-ChoosenPts[11,]<-c(camerawidth[3],callwidth[1], "SW3",8) #"p333"
-ChoosenPts[12,]<-c(camerawidth[3],callwidth[3], "SW2",8)#"p332"
-ChoosenPts[13,]<-c(camerawidth[3],callwidth[5], "SW1",8)#"p331"
-ChoosenPts[14,]<-c(camerawidth[3],callwidth[6],"NW4",6) #"p233"
-ChoosenPts[15,]<-c(camerawidth[3],callwidth[9],"NW3",6) #"p232"
-ChoosenPts[16,]<-c(camerawidth[3],callwidth[10],"NW2",6) #"p231"
-ChoosenPts[17,]<-c(camerawidth[3],callwidth[11],"NW1",5) #"p131"
-ChoosenPts[18,]<-c(camerawidth[5],callwidth[1],"SE4",8)#"p323"
-ChoosenPts[19,]<-c(camerawidth[5],callwidth[5],"SE3",8)#"p322"
-ChoosenPts[21,]<-c(camerawidth[6],callwidth[5],"SE2",7)#"p321"
-ChoosenPts[20,]<-c(camerawidth[5],callwidth[6],"NE3",6)#"p223"
-ChoosenPts[22,]<-c(camerawidth[6],callwidth[6],"NE2",3)#"p222"
-ChoosenPts[23,]<-c(camerawidth[6],callwidth[9],"NE1",1)#"p221"
-ChoosenPts[24,]<-c(camerawidth[7],callwidth[1],"SE1",2)#"p311"
-ChoosenPts[25,]<-c(camerawidth[7],callwidth[10],"gas",4)
+ChoosenPts<-matrix(ncol=4,nrow=4)
+ChoosenPts[1,]<-c(camerawidth[3],callwidth[11],"NW1",5) #"p131"
+ChoosenPts[2,]<-c(camerawidth[3],callwidth[5], "SW1",8)#"p331"
+ChoosenPts[3,]<-c(camerawidth[6],callwidth[9],"NE1",1)#"p221"
+ChoosenPts[4,]<-c(camerawidth[5],callwidth[5],"SE3",8)#"p322"
 
 
 
 #### Calcaultes the %error  mean and std and plots it
-calculate.plot<-function(profilewidth, Data, Speed, Time, NoOfIterations, Density, modelcount ,error.counter){
+calculate.plot<-function(profilewidth, Data, Speed, Time, NoOfIterations, Density, xlocation ,error.counter){
     
     #Calucalte the estimated density
     tempest<-(1/profilewidth)*Data/(Speed*Time)
@@ -209,21 +188,20 @@ calculate.plot<-function(profilewidth, Data, Speed, Time, NoOfIterations, Densit
     stardarderr<-sdadj/sqrt(NoOfIterations)
             
     #Plots
-    print(paste("x-value: ", modelcount, ", y-value: ",meanadj))
-    plotCI(x=modelcount,y=meanadj,uiw=(1.96*stardarderr),add=T,col=COLspec[error.counter])
+    print(paste("x-value: ", xlocation, ", y-value: ",meanadj))
+    plotCI(x=xlocation,y=meanadj,uiw=(1.96*stardarderr),add=T,col=COLspec[error.counter])
 }
         
 
 
 ### - Points with CI for each model and percentage error
 setwd(DIR_IMG)
-pdf("AverageModelBias - radiuserror.pdf")
+pdf("AverageModelBias - 4 models.pdf")
 
 # Sets the outline of the plot
-plot(type="n",0,0,xlab="Model Number",ylab="",xlim=c(1,25),ylim=c(-15,15),axes=FALSE,main="Radius Error")
-abline(h=0,col="grey",lty=2)
+par(mfrow=c(4,1),oma=c(3,3,0,0), mar=c(2,4,2,0.5))
 
-list.of.models<-c(1:25)
+list.of.models<-c(1:4)
 
 # model each column of the data (each inidvidual camera/call/radius combo)
 for(Column in 1:dim(Data)[2]){
@@ -240,31 +218,71 @@ for(Column in 1:dim(Data)[2]){
     example.points.both     <-example.points.camera[which(example.points.camera %in% example.points.call)]
     example.point.location  <-which(list.of.models %in% example.points.both)
     
-        
+    
     if(length(example.point.location)==1 & CameraRadiI==10){
         if(length(list.of.models)==0){break();}
         list.of.models = list.of.models[-example.point.location]
-            
-        # For each error value calculates then plots mean/sd
+        
+        plot(type="n",0,0,xlab="",ylab="",xlim=c(1,4),ylim=c(-15,15),axes=FALSE,main="")
+        
+        # For Call
         error.counter<-1
         for(error in 1:length(percentage.error)){
             # Calculate profile width
-            c.angle<-CallAngleI +CallAngleI *rnorm(100,0,percentage.error[error]/100)
+            c.angle<-CallAngleI +CallAngleI *percentage.error[error]/100
             if(c.angle>(2*pi)){c.angle=2*pi} else if(c.angle<0){c.angle=0}
             profilewidth<-calcProfileWidth(c.angle ,CameraWidthI, CameraRadiI)[[1]]
-            calculate.plot(profilewidth, Data=Data[,Column], Speed, Time, NoOfIterations, Density, modelcount=example.points.both, error.counter)
+            calculate.plot(profilewidth, Data=Data[,Column], Speed, Time, NoOfIterations, Density, xlocation=1, error.counter)
             error.counter=error.counter+1
         }# error loop
-            
+        
+        # For Camera
+        error.counter<-1
+        for(error in 1:length(percentage.error)){
+            # Calculate profile width
+            c.angle<-CameraWidthI +CameraWidthI *percentage.error[error]/100
+            if(c.angle>(2*pi)){c.angle=2*pi} else if(c.angle<0){c.angle=0}
+            profilewidth<-calcProfileWidth(CallAngleI ,c.angle, CameraRadiI)[[1]]
+            calculate.plot(profilewidth, Data=Data[,Column], Speed, Time, NoOfIterations, Density, xlocation=2, error.counter)
+            error.counter=error.counter+1
+        }# error loop
+        
+        # For Radius
+        error.counter<-1
+        for(error in 1:length(percentage.error)){
+            # Calculate profile width
+            c.radii<-CameraRadiI +CameraRadiI*percentage.error[error]/100
+            profilewidth<-calcProfileWidth(CallAngleI ,CameraWidthI , c.radii)[[1]]
+            calculate.plot(profilewidth, Data=Data[,Column], Speed, Time, NoOfIterations, Density, xlocation=3, error.counter)
+            error.counter=error.counter+1
+        }# error loop
+        
+        # For Speed
+        error.counter<-1
+        for(error in 1:length(percentage.error)){
+            # Calculate profile width
+            new.speed<-Speed +Speed*percentage.error[error]/100
+            profilewidth<-calcProfileWidth(CallAngleI ,CameraWidthI , CameraRadiI)[[1]]
+            calculate.plot(profilewidth, Data=Data[,Column], new.speed, Time, NoOfIterations, Density, xlocation=4, error.counter)
+            error.counter=error.counter+1
+        }# error loop
+        
+        abline(h=0,col="grey",lty=2)
+        axis(1,labels=FALSE,at=c(1:4))
+        axis(2,labels=FALSE,at=c(-10,0,10) )
+        # labels y axis and the title
+        mtext(side=2,at=c(-10,0,10),text=c(-10,0,10),line=1)
+        mtext(text=ChoosenPts[example.points.both,3],side=3,line=0)
+        box()
     } # else{print("not in table")} # end of if loop
         
 } # End of column loop
     
 
 
-axis(side=1,at=c(1:dim(ChoosenPts)[1]),labels=ChoosenPts[,3],las=2)
-axis(side=2,at=c(-15,-10,-5,0,5,10,15),labels=c(-15,-10,-5,0,5,10,15),las=0)
-mtext(text=expression(paste("Percentage error",sep="")),side=2,line=2)
-legend(x=20,y=-5,col=COLspec,legend=(percentage.error),lty=1,cex=0.8)
-box()
+
+mtext(side=1,at=c(1,2,3,3.9),text=c("Signal Width","Sensor Width","Sensor Radius","Animal Speed"),line=1,cex=0.8)
+mtext(side=1,text="Number of days",line=1.5,outer=TRUE)
+mtext(side=2,text="Percentage error between estimated and true density",line=1.5,outer=TRUE)
+legend(x=1.25,y=12,title="Percentage error",legend=percentage.error,col=COLspec ,lty=rep(1,5),bg="white")
 dev.off()

@@ -126,8 +126,8 @@ plot.type<-function(data,type,colour){
         meanadj<-mean(d);
         stardarderr<-sd(d)/sqrt(length(d))
         #print(paste("meanadj",meanadj,"stardarderr",stardarderr))
-        if(data[[4]]==1){plotCI(x=data[[3]],y=meanadj,uiw=(1.96*stardarderr),add=T,col=colour)}
-        else{plotCI(x=data[[3]]+0.2,y=meanadj,uiw=(1.96*stardarderr),add=T,col="black")}
+        if(data[[4]]==1){plotCI(x=data[[3]]-0.01,y=meanadj,uiw=(1.96*stardarderr),add=T,col="red")}
+        else{plotCI(x=data[[3]]+0.01,y=meanadj,uiw=(1.96*stardarderr),add=T,col="black")}
         #if(data[[4]]==1){boxplot(x=data[[1]],at=data[[3]]-0.1,add=T,col=colour,axes=FALSE,boxwex=0.3);print("first")}
         #else{boxplot(x=data[[1]],at=data[[3]]+0.1,add=T,col="grey",axes=FALSE,boxwex=0.3);print("other")}
     }
