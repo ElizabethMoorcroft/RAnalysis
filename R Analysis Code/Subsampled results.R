@@ -33,7 +33,7 @@ library("fields")
 DIR_DATA<-"/Users/student/Documents/Bats/Simulations"
 DIR_SAVE<-"/Users/student/Documents/Bats/Simulations"
 #DIR_IMG<-"/Users/student/Documents/Bats/lucasMoorcroftManuscript/imgs"
-DIR_IMG<-"/Users/student/Documents/Bats/Temp"
+DIR_IMG<-"/Users/student/Documents/Bats/Temp2"
 DIR_CODE<-"/Users/student/Documents/Bats/RAnalysis/R analysis code"
 
 
@@ -91,8 +91,8 @@ Density			<-NoofAnimals/(Area)
 loadindata  <-read.csv(paste(name,",Test.csv",sep=""),header=FALSE)
 x           <-loadindata[,-dim(loadindata)[2]]
 
-Data        <-x[-c(1:3),-1]
-header      <-x[c(1:3),-1]
+Data        <-x[-c(1:4),-1]
+header      <-x[c(1:4),-1]
 callwidth   <-c("0",names(table(as.numeric(header[2,]))))
 radii       <-names(table(as.numeric(Cameras[,6])))
 camerawidth <-names(table(as.numeric(Cameras[,5])))
@@ -153,6 +153,8 @@ add.boxplot<-function(profilewidth, Data, Speed, Time, Density, xlocation, colou
     #Plots
     print(paste("x-value: ", xlocation, ", y-value: ",meanadj))
     boxplot(at=xlocation,Values,add=T,axes=FALSE,col=colour)
+    
+    return(Values)
 }
 
 
@@ -291,6 +293,12 @@ plot(type="n",0,0,xlab="Model Number",ylab="",xlim=c(1,26),ylim=c(-15,15),axes=F
 abline(h=0,col="grey",lty=2)
 list.of.models<-c(1:25)
 
+
+
+save.data<-matrix(nrow=104,ncol=0)
+iter.name<-paste("iter",1:100,sep="")
+rownames(save.data)<-c("namemodel","signal_angle","camera_width","Radius",iter.name)
+
 # model each column of the data (each inidvidual camera/call/radius combo)
 for(Column in 1:dim(Data)[2]){
     
@@ -310,12 +318,16 @@ for(Column in 1:dim(Data)[2]){
         if(length(list.of.models)==0){break();}
         list.of.models = list.of.models[-example.point.location]
         profilewidth<-calcProfileWidth(CallAngleI ,CameraWidthI, CameraRadiI)[[1]]
-        add.boxplot(profilewidth, Data=Data[,Column], Speed, Time, Density, xlocation=example.points.both, colour=COLMATCHGRAPH[as.numeric(ChoosenPts[example.points.both,4])])
-    } # else{print("not in table")} # end of if loop
+        values<-add.boxplot(profilewidth, Data=Data[,Column], Speed, Time, Density, xlocation=example.points.both, colour=COLMATCHGRAPH[as.numeric(ChoosenPts[example.points.both,4])])
+        print(values)
+        save.data<-save.data_valuesformat_function(data=values,call=CallAngleI,sensor=CameraWidthI,radius=CameraRadiI,name=ChoosenPts[example.points.both,3],save.data)
+        } # else{print("not in table")} # end of if loop
     
 } # End of column loop
 axis(side=1,at=c(1:dim(ChoosenPts)[1]),labels=ChoosenPts[,3],las=2)
 axis(side=2,at=c(-15,-10,-5,0,5,10,15),labels=c(-15,-10,-5,0,5,10,15),las=0)
 mtext(text=expression(paste("Percentage error",sep="")),side=2,line=2)
 box()
+
+write.csv("AllModels_percenterror.csv",x=save.data)
 dev.off()

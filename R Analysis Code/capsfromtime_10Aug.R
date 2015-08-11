@@ -107,7 +107,9 @@ callrow<-which(x[,1]=="Call")
      
 
 
-estimatesmatrix<-matrix(nrow=dim(Data)[1]+3,ncol=dim(Data)[2])
+estimatesmatrix<-matrix(nrow=dim(Data)[1]+5,ncol=dim(Data)[2])
+iter.name<-paste("iter",1:dim(Data)[1],sep="")
+rownames(estimatesmatrix)<-c("namemodel","signal_angle","camera_width","Radius","No_of_captures",iter.name)
 
 #for(i in 1:dim(Data)[2]){
 for(i in 1:836){
@@ -116,18 +118,23 @@ for(i in 1:836){
 	model<-pickmodel(sensor=Cameras[which(header[sensorrow,i]==Cameras$ID),]$HalfWidthAngle*2,call=header[callrow,i]*2)
 	estimatesmatrix[1,i]<-model
 	print("model select")
-	if((header[callrow,i] == 3.14159 & Cameras[which(header[sensorrow,i]==Cameras$ID),]$HalfWidthAngle == 1.04720)||
-		(header[callrow,i] == 1.428 & Cameras[which(header[sensorrow,i]==Cameras$ID),]$HalfWidthAngle == 1.04720)||
-		(header[callrow,i] == 3.14159 & Cameras[which(header[sensorrow,i]==Cameras$ID),]$HalfWidthAngle == 1.74533)||
-		(header[callrow,i] == 1.428 & Cameras[which(header[sensorrow,i]==Cameras$ID),]$HalfWidthAngle == 1.74533)
-	){estimatesmatrix[2,i]<-"Y"}else{estimatesmatrix[2,i]<-"N"}
-	estimatesmatrix[3,i]<-header[capsrow,i]
+	#if((header[callrow,i] == 3.14159 & Cameras[which(header[sensorrow,i]==Cameras$ID),]$HalfWidthAngle == 1.04720)||
+#		(header[callrow,i] == 1.428 & Cameras[which(header[sensorrow,i]==Cameras$ID),]$HalfWidthAngle == 1.04720)||
+#		(header[callrow,i] == 3.14159 & Cameras[which(header[sensorrow,i]==Cameras$ID),]$HalfWidthAngle == 1.74533)||
+#		(header[callrow,i] == 1.428 & Cameras[which(header[sensorrow,i]==Cameras$ID),]$HalfWidthAngle == 1.74533)
+#	){estimatesmatrix[2,i]<-"Y"}else{estimatesmatrix[2,i]<-"N"}
+  estimatesmatrix[2,i]<-header[callrow,i]*2
+  estimatesmatrix[3,i]<-Cameras[which(header[sensorrow,i]==Cameras$ID),]$HalfWidthAngle*2 
+  estimatesmatrix[4,i]<-Cameras[which(header[sensorrow,i]==Cameras$ID),]$Radius
+  estimatesmatrix[5,i]<-header[capsrow,i]
 	print("time")
 	Time<-Data[,i]
 	print(mean(Time/(60*60)))
 	Captures<-header[capsrow,i]
-	estimatesmatrix[4:(dim(Data)[1]+3),i]<-((1/profile)*Captures/(Speed*Time))*(1000^2)
+	estimatesmatrix[6:(dim(Data)[1]+5),i]<-(((1/profile)*Captures/(Speed*Time))*(1000^2)-70)/70*100
 }
+
+write.csv(file="Allmodels_fixedcaps_variabletime_percenterror.csv",estimatesmatrix)
 
 testcases<-estimatesmatrix[,which(estimatesmatrix[2,]=="Y")]
 NW1<-testcases[,which(testcases[1,]=="NW1" & as.numeric(testcases[3,])>0)]

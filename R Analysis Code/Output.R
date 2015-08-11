@@ -80,7 +80,7 @@ CalBias<-function(ModelSelection, Cameras, x, Speed, Area, StepLength, x.positio
         bias<-calculate.bias(profilewidth=profilewidth[[1]], Data=Data[selectedcols], Speed=Speed, Time=as.numeric(model.values[4])*StepLength, Density=as.numeric(model.values[5])/Area)
         
         # Adds bias to returned list
-        Output[[i]]<-list(bias,as.character(model.values[6]),x.position[i],file.input)# saves: bias values; model name; position on the x axis
+        Output[[i]]<-list(bias,as.character(model.values[6]),x.position[i],file.input,"call"=as.numeric(model.values[2])*2,"sensor"= as.numeric(model.values[1])*2,"radius"=as.numeric(model.values[3]))# saves: bias values; model name; position on the x axis
     }
     
     return(Output)

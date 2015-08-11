@@ -29,7 +29,7 @@ library("plotrix")
 DIR_DATA<-"/Users/student/Documents/Bats/Simulations"
 DIR_SAVE<-"/Users/student/Documents/Bats/Simulations"
 #DIR_IMG<-"/Users/student/Documents/Bats/lucasMoorcroftManuscript/imgs"
-DIR_IMG<-"/Users/student/Documents/Bats/Temp"
+DIR_IMG<-"/Users/student/Documents/Bats/Temp2"
 DIR_CODE<-"/Users/student/Documents/Bats/RAnalysis/R analysis code"
 
 
@@ -111,6 +111,12 @@ biases<-calculate.all.biases(Names=paste(names.base,"timenosubs14400.csv",sep=""
                             StepLength=900,
                             x.pos)
 
+save.data<-matrix(nrow=105,ncol=0)
+iter.name<-paste("iter",1:100,sep="")
+rownames(save.data)<-c("namemodel","signal_angle","camera_width","Radius","Prop_time_still",iter.name)
+setwd(DIR_IMG)
+save.data_function(biases,vector.character=time.perch,save.data=save.data,save.name="Prop_time_still_percentageerror.csv")
+
 setwd(DIR_IMG)
 pdf("ResultsPerch.pdf")
     par(mfrow=c(4,1),oma=c(3,3,0,0), mar=c(2,4,2,0.5))
@@ -139,6 +145,8 @@ biases<-calculate.all.biases(Names=paste(names.base,"timenosubs14400.csv",sep=""
                             StepLength=900,
                             x.pos)
 
+print(biases)
+
 setwd(DIR_IMG)
 pdf("ResultsTort.pdf")
     par(mfrow=c(4,1),oma=c(3,3,0,0), mar=c(2,4,2,0.5))
@@ -147,6 +155,13 @@ pdf("ResultsTort.pdf")
     mtext(side=1,text="Maximum change in direction at each step (radians)",line=1.5,outer=TRUE)
     mtext(side=2,text="Percentage error between estimated and true density",line=1.5,outer=TRUE)
 dev.off()
+
+
+save.data<-matrix(nrow=105,ncol=0)
+iter.name<-paste("iter",1:100,sep="")
+rownames(save.data)<-c("namemodel","signal_angle","camera_width","Radius","max_angle_change",iter.name)
+setwd(DIR_IMG)
+save.data_function(biases,vector.character=tort,save.data=save.data,save.name="max_angle_change_percentageerror.csv")
 
 
 
