@@ -320,7 +320,7 @@ for(Column in 1:dim(Data)[2]){
         profilewidth<-calcProfileWidth(CallAngleI ,CameraWidthI, CameraRadiI)[[1]]
         values<-add.boxplot(profilewidth, Data=Data[,Column], Speed, Time, Density, xlocation=example.points.both, colour=COLMATCHGRAPH[as.numeric(ChoosenPts[example.points.both,4])])
         print(values)
-        save.data<-save.data_valuesformat_function(data=values,call=CallAngleI,sensor=CameraWidthI,radius=CameraRadiI,name=ChoosenPts[example.points.both,3],save.data)
+        #save.data<-save.data_valuesformat_function(data=values,call=CallAngleI,sensor=CameraWidthI,radius=CameraRadiI,name=ChoosenPts[example.points.both,3],save.data)
         } # else{print("not in table")} # end of if loop
     
 } # End of column loop

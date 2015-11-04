@@ -35,7 +35,7 @@ library("plotrix")
 DIR_DATA<-"/Users/student/Documents/Bats/Simulations"
 DIR_SAVE<-"/Users/student/Documents/Bats/Simulations"
 #DIR_IMG<-"/Users/student/Documents/Bats/lucasMoorcroftManuscript/imgs"
-DIR_IMG<-"/Users/student/Documents/Bats/Temp2"
+DIR_IMG<-"/Users/student/Documents/Temp"
 DIR_CODE<-"/Users/student/Documents/Bats/RAnalysis/R analysis code"
 
 
@@ -74,7 +74,7 @@ Cameras<-read.csv("Run23Oct201317July0,Density=70,Speed=0.46,Iterations=1-101,St
 #################################
 # Setting variables				#
 #################################
-NoOfIterations	<- 100 #Settings[which(Settings[,1] %in% "NoOfIterations"),2]
+NoOfIterations	<-100#100 #Settings[which(Settings[,1] %in% "NoOfIterations"),2]
 Seed			<-Settings[which(Settings[,1] %in% "Seed"),2]
 NoOfSteps		<-Settings[which(Settings[,1] %in% "NoSteps"),2]
 StepLength		<-Settings[which(Settings[,1] %in% "StepLength"),2]
@@ -107,8 +107,11 @@ callrow<-which(x[,1]=="Call")
      
 
 
-estimatesmatrix<-matrix(nrow=dim(Data)[1]+3,ncol=dim(Data)[2])
+estimatesmatrix<-matrix(nrow=dim(Data)[1]+5,ncol=dim(Data)[2])
+iter.name<-paste("iter",1:dim(Data)[1],sep="")
+rownames(estimatesmatrix)<-c("namemodel","signal_angle","camera_width","Radius","No_of_captures",iter.name)
 
+vector_yn<-vector(length=836)
 #for(i in 1:dim(Data)[2]){
 for(i in 1:836){
 	print(paste(i,"/",dim(Data)[2]))
@@ -116,20 +119,25 @@ for(i in 1:836){
 	model<-pickmodel(sensor=Cameras[which(header[sensorrow,i]==Cameras$ID),]$HalfWidthAngle*2,call=header[callrow,i]*2)
 	estimatesmatrix[1,i]<-model
 	print("model select")
-	if((header[callrow,i] == 3.14159 & Cameras[which(header[sensorrow,i]==Cameras$ID),]$HalfWidthAngle == 1.04720)||
-		(header[callrow,i] == 1.428 & Cameras[which(header[sensorrow,i]==Cameras$ID),]$HalfWidthAngle == 1.04720)||
-		(header[callrow,i] == 3.14159 & Cameras[which(header[sensorrow,i]==Cameras$ID),]$HalfWidthAngle == 1.74533)||
-		(header[callrow,i] == 1.428 & Cameras[which(header[sensorrow,i]==Cameras$ID),]$HalfWidthAngle == 1.74533)
-	){estimatesmatrix[2,i]<-"Y"}else{estimatesmatrix[2,i]<-"N"}
-	estimatesmatrix[3,i]<-header[capsrow,i]
+	if((abs(header[callrow,i] -3.14159) <0.01 & abs(Cameras[which(header[sensorrow,i]==Cameras$ID),]$HalfWidthAngle- 1.04720)<0.01)|| # call pi, cam pi/3  - 
+		(abs(header[callrow,i] - 1.428)<0.01 & abs(Cameras[which(header[sensorrow,i]==Cameras$ID),]$HalfWidthAngle - 1.04720)<0.01)|| # call pi/2, cam pi/3
+		(abs(header[callrow,i]- 3.14159)<0.01 & abs(Cameras[which(header[sensorrow,i]==Cameras$ID),]$HalfWidthAngle - 1.74533)<0.01)||  # call pi, cam 5pi/9??
+		(abs(header[callrow,i] - 1.428 )<0.01& abs(Cameras[which(header[sensorrow,i]==Cameras$ID),]$HalfWidthAngle - 1.74533)<0.01) # call pi/2, cam 5pi/9??
+	){vector_yn[i]<-"Y"}else{vector_yn[i]<-"N"}
+  estimatesmatrix[2,i]<-header[callrow,i]*2
+  estimatesmatrix[3,i]<-Cameras[which(header[sensorrow,i]==Cameras$ID),]$HalfWidthAngle*2 
+  estimatesmatrix[4,i]<-Cameras[which(header[sensorrow,i]==Cameras$ID),]$Radius
+  estimatesmatrix[5,i]<-header[capsrow,i]
 	print("time")
 	Time<-Data[,i]
 	print(mean(Time/(60*60)))
 	Captures<-header[capsrow,i]
-	estimatesmatrix[4:(dim(Data)[1]+3),i]<-((1/profile)*Captures/(Speed*Time))*(1000^2)
+	estimatesmatrix[6:(dim(Data)[1]+5),i]<-(((1/profile)*Captures/(Speed*Time))*(1000^2)-70)/70*100
 }
 
-testcases<-estimatesmatrix[,which(estimatesmatrix[2,]=="Y")]
+write.csv(file="Allmodels_fixedcaps_variabletime_percenterror.csv",estimatesmatrix)
+
+testcases<-estimatesmatrix[,which(vector_yn=="Y")]
 NW1<-testcases[,which(testcases[1,]=="NW1" & as.numeric(testcases[3,])>0)]
 SW1<-testcases[,which(testcases[1,]=="SW1" & as.numeric(testcases[3,])>0)]
 NE1<-testcases[,which(testcases[1,]=="NE1" & as.numeric(testcases[3,])>0)]
@@ -154,18 +162,22 @@ abline(h=0,lty=2,col="grey")
 #mtext(side=1,at=c(2,4,6,8,10),text=expression(20,40,60,80,100),line=1)
 mtext(side=2,at=c(-PlusMinusPerError,0,PlusMinusPerError),text=c(-PlusMinusPerError,0,PlusMinusPerError),line=1)
 mtext(text="NW1",side=3,line=0)
-for(i in 1:dim(NW1)[2]){
+for(i in 1:(dim(NW1)[2]-1)){
 	model<-"NW1"
 	COL<-COLmodel[which(COLmodel==model),2]
-	data<-as.numeric(NW1[4:maxval,i])
-	dataerr<-data - Density*1000^2
+	data<-as.numeric(NW1[6:maxval,i])
+	#dataerr<-data - Density*1000^2
   
 	cv<-CV(data)
-	boxplot(dataerr,add=T, at=as.numeric(NW1[3,i])/10, axes=FALSE,col=COL)
-	text(x=as.numeric(NW1[3,i])/10,y=min(dataerr)-10, label=paste(cv ),cex=1)
-	w.test<-wilcox.test(data,mu=Density*1000^2)$p.value
-	sig.value<-0.05/dim(SE3)[2]; if(w.test<sig.value){sig<-"yes"}else{sig<-"no"}
-	print(paste("Number of caps:",as.numeric(NW1[3,i])/10 ,"CV",sd(data)/mean(data), " p-value: ", w.test, " significant ", sig))
+	boxplot(data,add=T, at=as.numeric(NW1[5,i])/10, axes=FALSE,col=COL)
+	#text(x=as.numeric(NW1[5,i])/10,y=min(data)-10, label=paste(cv ),cex=1)
+	w.test<-wilcox.test(data,mu=0)$p.value
+	sig.value<-0.05/dim(SE3)[2]
+	if(w.test<sig.value){
+		sig<-"yes"
+		text(x=as.numeric(NW1[5,i])/10,y=min(data)-10, label="*" ,cex=1)
+		}else{sig<-"no"}
+	print(paste("Number of caps:",as.numeric(NW1[5,i])/10 ,"CV",sd(data)/mean(data), " p-value: ", w.test, " significant ", sig))
 	
 }
 
@@ -181,14 +193,17 @@ for(i in 1:dim(SW1)[2]){
 	model<-"SW1"
 	COL<-COLmodel[which(COLmodel==model),2]
 	data<-as.numeric(SW1[4:maxval,i])
-	dataerr<-data - Density*1000^2
+	#dataerr<-data - Density*1000^2
 	cv<-CV(data)
-	boxplot(dataerr,add=T, at=as.numeric(SW1[3,i])/10, axes=FALSE,col=COL)
-	text(x=as.numeric(SW1[3,i])/10,y=min(dataerr)-10, label=paste(cv ),cex=1)
-	w.test<-wilcox.test(data,mu=Density*1000^2)$p.value
-	sig.value<-0.05/dim(SE3)[2]; if(w.test<sig.value){sig<-"yes"}else{sig<-"no"}
+	boxplot(data,add=T, at=as.numeric(SW1[5,i])/10, axes=FALSE,col=COL)
+	#text(x=as.numeric(SW1[5,i])/10,y=min(data)-10, label=paste(cv ),cex=1)
+	w.test<-wilcox.test(data,mu=0)$p.value
+	sig.value<-0.05/dim(SE3)[2];	if(w.test<sig.value){
+		sig<-"yes"
+		text(x=as.numeric(SW1[5,i])/10,y=min(data)-10, label="*" ,cex=1)
+		}else{sig<-"no"}
 
-	print(paste("Number of caps:",as.numeric(NW1[3,i])/10 ,"CV",sd(data)/mean(data), " p-value: ", w.test, " significant ", sig))
+	#print(paste("Number of caps:",as.numeric(SW1[5,i])/10 ,"CV",sd(data)/mean(data), " p-value: ", w.test, " significant ", sig))
 	
 }
 plot(0,0,type="n",xlim=c(1,yval),ylim=c(0-PlusMinusPerError,0+PlusMinusPerError),
@@ -203,13 +218,17 @@ for(i in 1:dim(SE3)[2]){
 	model<-"SE3"
 	COL<-COLmodel[which(COLmodel==model),2]
 	data<-as.numeric(SE3[4:maxval,i])
-	dataerr<-data - Density*1000^2
+	#dataerr<-data - Density*1000^2
 	cv<-CV(data)
-	boxplot(dataerr,add=T, at=as.numeric(SE3[3,i])/10, axes=FALSE,col=COL)
-	text(x=as.numeric(SE3[3,i])/10,y=min(dataerr)-10, label=paste(cv ),cex=1)
-	w.test<-wilcox.test(data,mu=Density*1000^2)$p.value
-    sig.value<-0.05/dim(SE3)[2]; if(w.test<sig.value){sig<-"yes"}else{sig<-"no"}
-	print(paste("Number of caps:",as.numeric(NW1[3,i])/10 ,"CV",sd(data)/mean(data), " p-value: ", w.test, " significant ", sig))
+	boxplot(data,add=T, at=as.numeric(SE3[5,i])/10, axes=FALSE,col=COL)
+	#text(x=as.numeric(SE3[5,i])/10,y=min(data)-10, label=paste(cv ),cex=1)
+	w.test<-wilcox.test(data,mu=0)$p.value
+    sig.value<-0.05/dim(SE3)[2]; 
+    	if(w.test<sig.value){
+		sig<-"yes"
+		text(x=as.numeric(SE3[5,i])/10,y=min(data)-10, label="*" ,cex=1)
+		}else{sig<-"no"}
+	#print(paste("Number of caps:",as.numeric(SE3[5,i])/10 ,"CV",sd(data)/mean(data), " p-value: ", w.test, " significant ", sig))
 	
 }
 plot(0,0,type="n",xlim=c(1,yval),ylim=c(0-PlusMinusPerError,0+PlusMinusPerError),
@@ -224,13 +243,18 @@ for(i in 1:dim(NE1)[2]){
 	model<-"NE1"
 	COL<-COLmodel[which(COLmodel==model),2]
 	data<-as.numeric(NE1[4:maxval,i])
-	dataerr<-data - Density*1000^2
+	#dataerr<-data - Density*1000^2
 	cv<-CV(data)
-	boxplot(dataerr,add=T, at=as.numeric(NE1[3,i])/10, axes=FALSE,col=COL)
-	text(x=as.numeric(NE1[3,i])/10,y=min(dataerr)-10, label=paste( cv ),cex=1)
-	w.test<-wilcox.test(data,mu=Density*1000^2)$p.value
-	sig.value<-0.05/dim(SE3)[2]; if(w.test<sig.value){sig<-"yes"}else{sig<-"no"}
-	print(paste("Number of caps:",as.numeric(NW1[3,i])/10 ,"CV",sd(data)/mean(data), " p-value: ", w.test, " significant ", sig))
+	boxplot(data,add=T, at=as.numeric(NE1[5,i])/10, axes=FALSE,col=COL)
+	#text(x=as.numeric(NE1[5,i])/10,y=min(data)-10, label=paste( cv ),cex=1)
+	w.test<-wilcox.test(data,mu=0)$p.value
+	sig.value<-0.05/dim(SE3)[2]; 
+	if(w.test<sig.value){
+		sig<-"yes"
+		text(x=as.numeric(NE1[5,i])/10,y=min(data)-10, label="*" ,cex=1)
+		}else{sig<-"no"}
+	
+	#print(paste("Number of caps:",as.numeric(NW1[5,i])/10 ,"CV",sd(data)/mean(data), " p-value: ", w.test, " significant ", sig))
 	
 }
 

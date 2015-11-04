@@ -29,7 +29,7 @@ library("plotrix")
 DIR_DATA<-"/Users/student/Documents/Bats/Simulations"
 DIR_SAVE<-"/Users/student/Documents/Bats/Simulations"
 #DIR_IMG<-"/Users/student/Documents/Bats/lucasMoorcroftManuscript/imgs"
-DIR_IMG<-"/Users/student/Documents/Bats/Temp2"
+DIR_IMG<-"/Users/student/Documents/Temp"
 DIR_CODE<-"/Users/student/Documents/Bats/RAnalysis/R analysis code"
 
 
